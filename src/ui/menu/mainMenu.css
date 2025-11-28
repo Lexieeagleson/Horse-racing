@@ -195,6 +195,7 @@
 
 .join-input-row {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -224,7 +225,7 @@
 }
 
 .join-btn {
-  width: auto;
+  width: 100%;
   padding: 14px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;

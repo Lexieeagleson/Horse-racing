@@ -16,6 +16,7 @@ const MainMenu = () => {
   }, [actions]);
 
   const handleHostGame = useCallback(() => {
+    setIsHosting(true);
     if (!playerName.trim()) {
       setError('Please enter your name');
       return;
@@ -25,7 +26,6 @@ const MainMenu = () => {
       return;
     }
     setError('');
-    setIsHosting(true);
     actions.setPlayerInfo({ playerName: playerName.trim() });
     actions.setScreen('hosting');
   }, [playerName, state.playerAvatar, actions]);
