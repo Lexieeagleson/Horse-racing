@@ -8,7 +8,6 @@ const MainMenu = () => {
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [playerName, setPlayerName] = useState(state.playerName || '');
   const [joinCode, setJoinCode] = useState('');
-  const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
 
   const handleAvatarSelect = useCallback((avatarData) => {

@@ -27,14 +27,12 @@ const Lobby = () => {
         
         let roomCode = state.roomCode;
         let playerId = state.playerId;
-        let isHost = state.isHost;
         
         // If we're hosting (coming from 'hosting' screen)
         if (state.screen === 'hosting' && !roomCode) {
           const result = await createRoom(state.playerName, state.playerAvatar);
           roomCode = result.roomCode;
           playerId = result.playerId;
-          isHost = true;
           actions.setRoom({ roomCode });
           actions.setPlayerInfo({ playerId, isHost: true });
         }
@@ -42,7 +40,6 @@ const Lobby = () => {
         else if (state.screen === 'joining' && roomCode && !playerId) {
           const result = await joinRoom(roomCode, state.playerName, state.playerAvatar);
           playerId = result.playerId;
-          isHost = false;
           actions.setPlayerInfo({ playerId, isHost: false });
         }
         
@@ -97,8 +94,8 @@ const Lobby = () => {
       await leaveRoom(state.roomCode, state.playerId, state.isHost);
       actions.reset();
       actions.setScreen('menu');
-    } catch (err) {
-      console.error('Error leaving room:', err);
+    } catch (error) {
+      console.error('Error leaving room:', error);
       actions.reset();
       actions.setScreen('menu');
     }
