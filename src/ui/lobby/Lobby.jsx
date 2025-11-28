@@ -40,7 +40,7 @@ const Lobby = () => {
         // Set a timeout to prevent indefinite loading
         timeoutId = setTimeout(() => {
           if (mounted && !connectionComplete) {
-            setError('Connection timed out. Please check your internet connection and try again.');
+            setError('Connection timed out');
             setIsLoading(false);
           }
         }, CONNECTION_TIMEOUT_MS);
