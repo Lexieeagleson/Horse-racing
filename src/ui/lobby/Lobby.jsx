@@ -16,15 +16,31 @@ const Lobby = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Handle going back to menu
+  const handleBackToMenu = useCallback(() => {
+    actions.reset();
+    actions.setScreen('menu');
+  }, [actions]);
+
   // Initialize room (create or join)
   useEffect(() => {
     let unsubscribe = null;
     let mounted = true;
+    let timeoutId = null;
+    let connectionComplete = false;
     
     const initRoom = async () => {
       try {
         setIsLoading(true);
         setError('');
+        
+        // Set a timeout to prevent indefinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted && !connectionComplete) {
+            setError('Connection timed out. Please check your internet connection and try again.');
+            setIsLoading(false);
+          }
+        }, 15000); // 15 second timeout
         
         let roomCode = state.roomCode;
         let playerId = state.playerId;
@@ -44,6 +60,13 @@ const Lobby = () => {
           if (!mounted) return;
           playerId = result.playerId;
           actions.setPlayerInfo({ playerId, isHost: false });
+        }
+        
+        // Mark connection as complete and clear timeout
+        connectionComplete = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
         }
         
         // Subscribe to room updates
@@ -80,6 +103,11 @@ const Lobby = () => {
           setIsLoading(false);
         }
       } catch (err) {
+        connectionComplete = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         if (mounted) {
           setError(err.message || 'Failed to connect');
           setIsLoading(false);
@@ -91,6 +119,9 @@ const Lobby = () => {
     
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       if (unsubscribe) {
         unsubscribe();
       }
@@ -147,6 +178,8 @@ const Lobby = () => {
       <div className="lobby loading">
         <div className="loader"></div>
         <p>Connecting...</p>
+        {error && <p className="error-text">{error}</p>}
+        <button className="back-btn-loading" onClick={handleBackToMenu}>Cancel</button>
       </div>
     );
   }
@@ -155,7 +188,7 @@ const Lobby = () => {
     return (
       <div className="lobby error-screen">
         <p className="error-text">{error}</p>
-        <button onClick={() => actions.setScreen('menu')}>Back to Menu</button>
+        <button onClick={handleBackToMenu}>Back to Menu</button>
       </div>
     );
   }

@@ -31,6 +31,24 @@
   margin-bottom: 20px;
 }
 
+.back-btn-loading {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: #2a2a4a;
+  border: 2px solid #3a3a5a;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn-loading:hover {
+  border-color: #4ECDC4;
+  background: rgba(78, 205, 196, 0.1);
+  color: #4ECDC4;
+}
+
 .lobby-header {
   display: flex;
   align-items: center;
