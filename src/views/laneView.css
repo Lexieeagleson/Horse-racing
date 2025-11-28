@@ -1,0 +1,163 @@
+.lane-view-container {
+  width: 100%;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.lane-view-track {
+  position: relative;
+  background: linear-gradient(180deg, #2d5016 0%, #1a3009 100%);
+  border-radius: 8px;
+  border: 3px solid #8B4513;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, 
+    rgba(139, 69, 19, 0.3) 0%, 
+    rgba(139, 69, 19, 0.1) 10%, 
+    rgba(139, 69, 19, 0.1) 90%, 
+    rgba(139, 69, 19, 0.3) 100%
+  );
+  border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.lane-track {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 4px;
+  background: rgba(210, 180, 140, 0.5);
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.lane-racer {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.lane-racer.disconnected {
+  opacity: 0.4;
+}
+
+.racer-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: #333;
+}
+
+.racer-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2em;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.racer-name {
+  font-size: 0.65em;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.start-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: repeating-linear-gradient(
+    0deg,
+    #fff 0px,
+    #fff 10px,
+    #000 10px,
+    #000 20px
+  );
+  z-index: 5;
+}
+
+.finish-line-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: repeating-linear-gradient(
+    0deg,
+    #fff 0px,
+    #fff 10px,
+    #000 10px,
+    #000 20px
+  );
+  z-index: 5;
+}
+
+.progress-bars {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-name {
+  font-size: 0.85em;
+  color: #fff;
+  min-width: 60px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+  border-radius: 6px;
+  transition: width 0.1s linear;
+}
+
+.progress-percent {
+  font-size: 0.75em;
+  color: #aaa;
+  min-width: 35px;
+  text-align: right;
+}
