@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import './laneView.css';
 
 // Lane-based top-down view renderer
@@ -9,7 +9,8 @@ const LANE_CONFIG = {
   laneGap: 8,
   avatarSize: 48,
   trackPadding: 20,
-  animationDuration: 100 // ms for smooth transitions
+  animationDuration: 100, // ms for smooth transitions
+  defaultWidth: 350
 };
 
 // Individual racer component
@@ -48,7 +49,7 @@ const Racer = memo(({ player, laneIndex, trackWidth }) => {
 Racer.displayName = 'Racer';
 
 // Lane background
-const Lane = memo(({ index, width, isFinishLine }) => (
+const Lane = memo(({ index, width }) => (
   <div 
     className="lane"
     style={{
@@ -58,16 +59,28 @@ const Lane = memo(({ index, width, isFinishLine }) => (
     }}
   >
     <div className="lane-track" />
-    {isFinishLine && <div className="finish-line" />}
   </div>
 ));
 
 Lane.displayName = 'Lane';
 
 // Main Lane View Component
-const LaneView = ({ players, events = {} }) => {
+const LaneView = ({ players }) => {
   const containerRef = useRef(null);
-  const trackWidth = containerRef.current?.clientWidth || 350;
+  const [trackWidth, setTrackWidth] = useState(LANE_CONFIG.defaultWidth);
+  
+  // Update width on mount and resize
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setTrackWidth(containerRef.current.clientWidth || LANE_CONFIG.defaultWidth);
+      }
+    };
+    
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
   
   const playerArray = Object.values(players || {}).filter(p => p.connected !== false);
   const numLanes = Math.max(playerArray.length, 2);
@@ -85,7 +98,6 @@ const LaneView = ({ players, events = {} }) => {
             key={`lane-${index}`}
             index={index}
             width={trackWidth}
-            isFinishLine={true}
           />
         ))}
         
@@ -96,7 +108,6 @@ const LaneView = ({ players, events = {} }) => {
             player={player}
             laneIndex={index}
             trackWidth={trackWidth}
-            event={events[player.id]}
           />
         ))}
 

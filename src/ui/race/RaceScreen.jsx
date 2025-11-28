@@ -7,7 +7,7 @@ import {
   setCurrentTrivia,
   leaveRoom
 } from '../../core/network';
-import { RaceEngine, getRankings, getWinner, RACE_CONFIG } from '../../core/raceEngine';
+import { RaceEngine, RACE_CONFIG } from '../../core/raceEngine';
 import { TriviaMode, TRIVIA_CONFIG } from '../../modes/triviaMode';
 import { ButtonMashMode } from '../../modes/buttonMashMode';
 import { RandomMode, EVENT_TYPES } from '../../modes/randomMode';
@@ -31,6 +31,136 @@ const RaceScreen = () => {
   const randomModeRef = useRef(null);
   const unsubscribeRef = useRef(null);
   const lastSyncRef = useRef(0);
+
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+    if (raceEngineRef.current) {
+      raceEngineRef.current.stop();
+      raceEngineRef.current = null;
+    }
+    if (triviaModeRef.current) {
+      triviaModeRef.current.stop();
+      triviaModeRef.current = null;
+    }
+    if (buttonMashRef.current) {
+      buttonMashRef.current.stop();
+      buttonMashRef.current = null;
+    }
+    if (randomModeRef.current) {
+      randomModeRef.current.stop();
+      randomModeRef.current = null;
+    }
+  }, []);
+
+  // Initialize trivia mode
+  const initializeTriviaMode = useCallback(() => {
+    triviaModeRef.current = new TriviaMode(
+      // On question
+      async (question) => {
+        setCurrentQuestion(question);
+        setShowTrivia(true);
+        // Broadcast to all players
+        try {
+          await setCurrentTrivia(state.roomCode, question);
+        } catch (error) {
+          console.error('Error broadcasting trivia:', error);
+        }
+      },
+      // On result
+      (result) => {
+        if (raceEngineRef.current) {
+          if (result.isCorrect) {
+            raceEngineRef.current.setModifier(result.playerId, { boost: true });
+            setTimeout(() => {
+              if (raceEngineRef.current) {
+                raceEngineRef.current.clearModifiers(result.playerId);
+              }
+            }, TRIVIA_CONFIG.boostDuration);
+          } else {
+            raceEngineRef.current.setModifier(result.playerId, { slowdown: true });
+            setTimeout(() => {
+              if (raceEngineRef.current) {
+                raceEngineRef.current.clearModifiers(result.playerId);
+              }
+            }, TRIVIA_CONFIG.slowdownDuration);
+          }
+        }
+      }
+    );
+    triviaModeRef.current.start();
+  }, [state.roomCode]);
+
+  // Initialize random mode
+  const initializeRandomMode = useCallback((playerIds) => {
+    randomModeRef.current = new RandomMode(
+      playerIds,
+      // On event
+      (eventsData) => {
+        setEvents(eventsData);
+      },
+      // On speed update
+      (speeds) => {
+        if (raceEngineRef.current) {
+          Object.entries(speeds).forEach(([playerId, speed]) => {
+            raceEngineRef.current.updatePlayerSpeed(playerId, speed);
+          });
+        }
+      }
+    );
+    randomModeRef.current.start();
+  }, []);
+
+  // Initialize host race
+  const initializeHostRace = useCallback((players) => {
+    // Create race engine
+    raceEngineRef.current = new RaceEngine(
+      // On update
+      async (updatedPlayers) => {
+        setLocalPlayers(updatedPlayers);
+        
+        // Sync to network periodically
+        const now = Date.now();
+        if (now - lastSyncRef.current > 200) {
+          lastSyncRef.current = now;
+          // Update all players in the room
+          for (const playerId of Object.keys(updatedPlayers)) {
+            const player = updatedPlayers[playerId];
+            try {
+              await updatePlayerProgress(state.roomCode, playerId, player.progress, player.speed);
+            } catch (error) {
+              console.error('Sync error:', error);
+            }
+          }
+        }
+      },
+      // On finish
+      async (winner, rankings) => {
+        try {
+          await endRace(state.roomCode, winner, rankings);
+        } catch (error) {
+          console.error('End race error:', error);
+        }
+      }
+    );
+
+    raceEngineRef.current.setPlayers(players);
+
+    // Initialize game mode
+    const gameMode = state.settings.gameMode;
+    
+    if (gameMode === 'trivia') {
+      initializeTriviaMode();
+    } else if (gameMode === 'random') {
+      initializeRandomMode(Object.keys(players));
+    }
+
+    // Start race
+    raceEngineRef.current.start();
+  }, [state.roomCode, state.settings.gameMode, initializeTriviaMode, initializeRandomMode]);
 
   // Initialize race
   useEffect(() => {
@@ -76,133 +206,7 @@ const RaceScreen = () => {
     return () => {
       cleanup();
     };
-  }, []);
-
-  const cleanup = () => {
-    if (unsubscribeRef.current) {
-      unsubscribeRef.current();
-      unsubscribeRef.current = null;
-    }
-    if (raceEngineRef.current) {
-      raceEngineRef.current.stop();
-      raceEngineRef.current = null;
-    }
-    if (triviaModeRef.current) {
-      triviaModeRef.current.stop();
-      triviaModeRef.current = null;
-    }
-    if (buttonMashRef.current) {
-      buttonMashRef.current.stop();
-      buttonMashRef.current = null;
-    }
-    if (randomModeRef.current) {
-      randomModeRef.current.stop();
-      randomModeRef.current = null;
-    }
-  };
-
-  const initializeHostRace = (players) => {
-    // Create race engine
-    raceEngineRef.current = new RaceEngine(
-      // On update
-      async (updatedPlayers) => {
-        setLocalPlayers(updatedPlayers);
-        
-        // Sync to network periodically
-        const now = Date.now();
-        if (now - lastSyncRef.current > 200) {
-          lastSyncRef.current = now;
-          // Update all players in the room
-          for (const playerId of Object.keys(updatedPlayers)) {
-            const player = updatedPlayers[playerId];
-            try {
-              await updatePlayerProgress(state.roomCode, playerId, player.progress, player.speed);
-            } catch (err) {
-              console.error('Sync error:', err);
-            }
-          }
-        }
-      },
-      // On finish
-      async (winner, rankings) => {
-        try {
-          await endRace(state.roomCode, winner, rankings);
-        } catch (err) {
-          console.error('End race error:', err);
-        }
-      }
-    );
-
-    raceEngineRef.current.setPlayers(players);
-
-    // Initialize game mode
-    const gameMode = state.settings.gameMode;
-    
-    if (gameMode === 'trivia') {
-      initializeTriviaMode();
-    } else if (gameMode === 'random') {
-      initializeRandomMode(Object.keys(players));
-    }
-
-    // Start race
-    raceEngineRef.current.start();
-  };
-
-  const initializeTriviaMode = () => {
-    triviaModeRef.current = new TriviaMode(
-      // On question
-      async (question) => {
-        setCurrentQuestion(question);
-        setShowTrivia(true);
-        // Broadcast to all players
-        try {
-          await setCurrentTrivia(state.roomCode, question);
-        } catch (err) {
-          console.error('Error broadcasting trivia:', err);
-        }
-      },
-      // On result
-      (result) => {
-        if (raceEngineRef.current) {
-          if (result.isCorrect) {
-            raceEngineRef.current.setModifier(result.playerId, { boost: true });
-            setTimeout(() => {
-              if (raceEngineRef.current) {
-                raceEngineRef.current.clearModifiers(result.playerId);
-              }
-            }, TRIVIA_CONFIG.boostDuration);
-          } else {
-            raceEngineRef.current.setModifier(result.playerId, { slowdown: true });
-            setTimeout(() => {
-              if (raceEngineRef.current) {
-                raceEngineRef.current.clearModifiers(result.playerId);
-              }
-            }, TRIVIA_CONFIG.slowdownDuration);
-          }
-        }
-      }
-    );
-    triviaModeRef.current.start();
-  };
-
-  const initializeRandomMode = (playerIds) => {
-    randomModeRef.current = new RandomMode(
-      playerIds,
-      // On event
-      (eventsData) => {
-        setEvents(eventsData);
-      },
-      // On speed update
-      (speeds) => {
-        if (raceEngineRef.current) {
-          Object.entries(speeds).forEach(([playerId, speed]) => {
-            raceEngineRef.current.updatePlayerSpeed(playerId, speed);
-          });
-        }
-      }
-    );
-    randomModeRef.current.start();
-  };
+  }, [state.roomCode, state.players, state.isHost, actions, cleanup, initializeHostRace]);
 
   // Handle trivia answer
   const handleTriviaAnswer = useCallback((answerIndex) => {
@@ -223,7 +227,7 @@ const RaceScreen = () => {
           try {
             await updatePlayerProgress(state.roomCode, state.playerId, 
               localPlayers[state.playerId]?.progress || 0, speed);
-          } catch (err) {
+          } catch {
             // Ignore sync errors
           }
         },

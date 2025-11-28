@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useReducer, useMemo } from 'react';
 
 // Initial state
 const initialState = {

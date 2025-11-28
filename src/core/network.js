@@ -1,4 +1,4 @@
-import { database, ref, set, onValue, push, update, remove, get, onDisconnect, serverTimestamp } from './firebase';
+import { database, ref, set, onValue, update, remove, get, onDisconnect, serverTimestamp } from './firebase';
 
 // Generate a 4-digit room code
 const generateRoomCode = () => {

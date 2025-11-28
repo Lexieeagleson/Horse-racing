@@ -1,42 +1,50 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import './triviaModal.css';
 
 const TriviaModal = ({ question, onAnswer, timeLimit }) => {
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const answeredRef = useRef(false);
+
+  const handleTimeout = useCallback(() => {
+    if (!answeredRef.current) {
+      answeredRef.current = true;
+      setAnswered(true);
+      onAnswer(-1); // Timeout
+    }
+  }, [onAnswer]);
 
   useEffect(() => {
+    answeredRef.current = false;
+    setAnswered(false);
+    setSelectedAnswer(null);
+    setTimeLeft(timeLimit);
+    
     const startTime = Date.now();
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const remaining = Math.max(0, timeLimit - elapsed);
       setTimeLeft(remaining);
       
-      if (remaining === 0 && !answered) {
+      if (remaining === 0 && !answeredRef.current) {
         handleTimeout();
       }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [question.id, timeLimit]);
-
-  const handleTimeout = useCallback(() => {
-    if (!answered) {
-      setAnswered(true);
-      onAnswer(-1); // Timeout
-    }
-  }, [answered, onAnswer]);
+  }, [question.id, timeLimit, handleTimeout]);
 
   const handleSelect = useCallback((index) => {
-    if (answered) return;
+    if (answeredRef.current) return;
+    answeredRef.current = true;
     setSelectedAnswer(index);
     setAnswered(true);
     
     setTimeout(() => {
       onAnswer(index);
     }, 500);
-  }, [answered, onAnswer]);
+  }, [onAnswer]);
 
   const timePercent = (timeLeft / timeLimit) * 100;
   const isCorrect = selectedAnswer === question.correctAnswer;

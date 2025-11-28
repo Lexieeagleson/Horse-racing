@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue, push, update, remove, get, onDisconnect, serverTimestamp } from 'firebase/database';
+import { getDatabase, ref, set, onValue, update, remove, get, onDisconnect, serverTimestamp } from 'firebase/database';
 
 // Firebase configuration - users should replace with their own config
 // To set up your own Firebase:
@@ -22,4 +22,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-export { database, ref, set, onValue, push, update, remove, get, onDisconnect, serverTimestamp };
+export { database, ref, set, onValue, update, remove, get, onDisconnect, serverTimestamp };

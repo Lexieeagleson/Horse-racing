@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import './birdsEyeView.css';
 
 // Birds-Eye Track View renderer
@@ -7,7 +7,8 @@ import './birdsEyeView.css';
 const BIRDS_EYE_CONFIG = {
   avatarSize: 36,
   trackWidth: 40,
-  animationDuration: 100
+  animationDuration: 100,
+  defaultWidth: 350
 };
 
 // Calculate position on oval track
@@ -58,14 +59,30 @@ const TrackRacer = memo(({ player, position, size }) => {
 TrackRacer.displayName = 'TrackRacer';
 
 // Main Birds-Eye View Component
-const BirdsEyeView = ({ players, events = {} }) => {
+const BirdsEyeView = ({ players }) => {
   const containerRef = useRef(null);
-  
-  // Get container dimensions
-  const width = containerRef.current?.clientWidth || 350;
-  const height = Math.min(width * 0.75, 300); // Maintain aspect ratio
+  const [dimensions, setDimensions] = useState({ 
+    width: BIRDS_EYE_CONFIG.defaultWidth, 
+    height: Math.min(BIRDS_EYE_CONFIG.defaultWidth * 0.75, 300) 
+  });
   const padding = 30;
 
+  // Update dimensions on mount and resize
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.clientWidth || BIRDS_EYE_CONFIG.defaultWidth;
+        const height = Math.min(width * 0.75, 300);
+        setDimensions({ width, height });
+      }
+    };
+    
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  const { width, height } = dimensions;
   const playerArray = Object.values(players || {}).filter(p => p.connected !== false);
 
   // Calculate track path for SVG
