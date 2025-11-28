@@ -186,7 +186,7 @@ export const GameProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use game state - exported for backward compatibility
+// Custom hook to use game state
 // eslint-disable-next-line react-refresh/only-export-components
 export const useGame = () => {
   const context = useContext(GameContext);

@@ -34,7 +34,7 @@ const TriviaModal = ({ question, onAnswer, timeLimit }) => {
     }, 100);
 
     return () => clearInterval(interval);
-  });
+  }, []);
 
   // Handle timeout when time runs out
   useEffect(() => {
