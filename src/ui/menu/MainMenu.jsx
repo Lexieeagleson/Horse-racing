@@ -9,6 +9,7 @@ const MainMenu = () => {
   const [playerName, setPlayerName] = useState(state.playerName || '');
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
+  const [isHosting, setIsHosting] = useState(false);
 
   const handleAvatarSelect = useCallback((avatarData) => {
     actions.setPlayerInfo({ playerAvatar: avatarData });
@@ -24,6 +25,7 @@ const MainMenu = () => {
       return;
     }
     setError('');
+    setIsHosting(true);
     actions.setPlayerInfo({ playerName: playerName.trim() });
     actions.setScreen('hosting');
   }, [playerName, state.playerAvatar, actions]);
@@ -93,29 +95,31 @@ const MainMenu = () => {
           Host Game
         </button>
 
-        {/* Join Game Section */}
-        <div className="join-section">
-          <div className="join-divider">
-            <span>or join a game</span>
+        {/* Join Game Section - hidden when hosting */}
+        {!isHosting && (
+          <div className="join-section">
+            <div className="join-divider">
+              <span>or join a game</span>
+            </div>
+            <div className="join-input-row">
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="Enter code"
+                maxLength={4}
+                className="join-code-input"
+              />
+              <button 
+                className="menu-btn join-btn"
+                onClick={handleJoinGame}
+                disabled={joinCode.length !== 4}
+              >
+                Join
+              </button>
+            </div>
           </div>
-          <div className="join-input-row">
-            <input
-              type="text"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="Enter code"
-              maxLength={4}
-              className="join-code-input"
-            />
-            <button 
-              className="menu-btn join-btn"
-              onClick={handleJoinGame}
-              disabled={joinCode.length !== 4}
-            >
-              Join
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Footer */}
         <p className="menu-footer">Up to 14 players</p>
