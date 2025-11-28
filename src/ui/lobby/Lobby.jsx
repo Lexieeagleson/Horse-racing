@@ -10,6 +10,9 @@ import {
 } from '../../core/network';
 import './lobby.css';
 
+// Connection timeout in milliseconds
+const CONNECTION_TIMEOUT_MS = 15000;
+
 const Lobby = () => {
   const { state, actions } = useGame();
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +43,7 @@ const Lobby = () => {
             setError('Connection timed out. Please check your internet connection and try again.');
             setIsLoading(false);
           }
-        }, 15000); // 15 second timeout
+        }, CONNECTION_TIMEOUT_MS);
         
         let roomCode = state.roomCode;
         let playerId = state.playerId;
@@ -178,7 +181,6 @@ const Lobby = () => {
       <div className="lobby loading">
         <div className="loader"></div>
         <p>Connecting...</p>
-        {error && <p className="error-text">{error}</p>}
         <button className="back-btn-loading" onClick={handleBackToMenu}>Cancel</button>
       </div>
     );
