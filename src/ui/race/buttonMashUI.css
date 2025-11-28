@@ -1,0 +1,143 @@
+.button-mash-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  margin-top: auto;
+}
+
+.stamina-section {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 15px;
+}
+
+.stamina-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+  color: #888;
+}
+
+.overheat-warning {
+  color: #FF6B6B;
+  font-weight: bold;
+  animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.stamina-bar-container {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stamina-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.1s, background-color 0.3s;
+}
+
+.tap-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tap-count {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #4ECDC4;
+  line-height: 1;
+}
+
+.tap-label {
+  font-size: 0.75em;
+  color: #888;
+  letter-spacing: 2px;
+}
+
+.tap-button {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44B7A8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+  overflow: hidden;
+}
+
+.tap-button:active,
+.tap-button.pressed {
+  transform: scale(0.95);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.tap-button.disabled {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.tap-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.3s ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  0% {
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+.tap-icon {
+  font-size: 3em;
+  margin-bottom: 5px;
+}
+
+.tap-text {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #1a1a2e;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.tap-instructions {
+  margin-top: 15px;
+  color: #666;
+  font-size: 0.85em;
+  text-align: center;
+}

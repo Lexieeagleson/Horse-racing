@@ -1,0 +1,226 @@
+.results-screen {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.winner-section {
+  text-align: center;
+  margin-bottom: 30px;
+  animation: fadeInDown 0.5s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.trophy {
+  font-size: 4em;
+  display: block;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.winner-title {
+  color: #FFD700;
+  font-size: 1.8em;
+  margin: 10px 0;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+}
+
+.winner-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 4px solid #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.winner-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.winner-avatar .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.rankings-section {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 30px;
+}
+
+.rankings-section h2 {
+  color: #fff;
+  font-size: 1.1em;
+  margin: 0 0 15px;
+  text-align: center;
+}
+
+.rankings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  background: #2a2a4a;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  animation: fadeInUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.ranking-item:nth-child(1) { animation-delay: 0.1s; }
+.ranking-item:nth-child(2) { animation-delay: 0.15s; }
+.ranking-item:nth-child(3) { animation-delay: 0.2s; }
+.ranking-item:nth-child(4) { animation-delay: 0.25s; }
+.ranking-item:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ranking-item.is-you {
+  border-color: #4ECDC4;
+  background: rgba(78, 205, 196, 0.1);
+}
+
+.ranking-item.is-winner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+}
+
+.rank-medal {
+  font-size: 1.5em;
+  min-width: 36px;
+  text-align: center;
+}
+
+.rank-player {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.rank-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.rank-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.rank-name {
+  color: #fff;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.you-tag {
+  color: #4ECDC4;
+  font-size: 0.85em;
+  margin-left: 5px;
+}
+
+.rank-progress {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.results-actions {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-bottom: 20px;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #4ECDC4 0%, #44B7A8 100%);
+  color: #1a1a2e;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+.action-btn.secondary {
+  background: #3a3a5a;
+  color: #fff;
+}
+
+.waiting-host {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin: 10px 0;
+}

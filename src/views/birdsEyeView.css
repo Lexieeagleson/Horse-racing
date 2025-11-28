@@ -1,0 +1,139 @@
+.birds-eye-container {
+  width: 100%;
+  padding: 10px;
+}
+
+.birds-eye-track {
+  position: relative;
+  background: linear-gradient(180deg, #1a3009 0%, #0f1f05 100%);
+  border-radius: 12px;
+  border: 3px solid #8B4513;
+  overflow: hidden;
+}
+
+.track-svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.track-racer {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-racer.disconnected {
+  opacity: 0.4;
+}
+
+.track-racer-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  background: #333;
+}
+
+.track-racer-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9em;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.birds-eye-progress {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.birds-eye-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.birds-eye-progress-item .position {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #ffd700;
+  min-width: 20px;
+}
+
+.birds-eye-progress-item .position:first-child {
+  color: #ffd700;
+}
+
+.birds-eye-progress-item:nth-child(2) .position {
+  color: #c0c0c0;
+}
+
+.birds-eye-progress-item:nth-child(3) .position {
+  color: #cd7f32;
+}
+
+.birds-eye-progress-item .player-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.birds-eye-progress-item .mini-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.birds-eye-progress-item .mini-avatar-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7em;
+  font-weight: bold;
+}
+
+.birds-eye-progress-item .name {
+  font-size: 0.85em;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.birds-eye-progress-item .progress-value {
+  font-size: 0.8em;
+  color: #4CAF50;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: right;
+}
