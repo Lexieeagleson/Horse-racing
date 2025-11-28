@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useMemo } from 'react';
+import { createContext, useReducer, useMemo, useContext } from 'react';
 
 // Initial state
 const initialState = {
@@ -186,50 +186,14 @@ export const GameProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use game state
+// Custom hook to use game state - exported for backward compatibility
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {
     throw new Error('useGame must be used within a GameProvider');
   }
   return context;
-};
-
-// Selector hooks for specific state slices
-export const usePlayer = () => {
-  const { state } = useGame();
-  return {
-    playerId: state.playerId,
-    playerName: state.playerName,
-    playerAvatar: state.playerAvatar,
-    isHost: state.isHost
-  };
-};
-
-export const useRoom = () => {
-  const { state } = useGame();
-  return {
-    roomCode: state.roomCode,
-    roomStatus: state.roomStatus,
-    settings: state.settings,
-    players: state.players,
-    race: state.race
-  };
-};
-
-export const usePlayers = () => {
-  const { state } = useGame();
-  return state.players;
-};
-
-export const useSettings = () => {
-  const { state } = useGame();
-  return state.settings;
-};
-
-export const useScreen = () => {
-  const { state } = useGame();
-  return state.screen;
 };
 
 export default GameContext;

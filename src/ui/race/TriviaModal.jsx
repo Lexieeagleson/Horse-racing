@@ -1,45 +1,52 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './triviaModal.css';
 
 const TriviaModal = ({ question, onAnswer, timeLimit }) => {
-  const [timeLeft, setTimeLeft] = useState(timeLimit);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [answered, setAnswered] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const answeredRef = useRef(false);
+  const startTimeRef = useRef(null);
+
+  // Derive time left from elapsed time
+  const timeLeft = useMemo(() => {
+    return Math.max(0, timeLimit - elapsedMs);
+  }, [elapsedMs, timeLimit]);
+
+  const answered = selectedAnswer !== null || timeLeft === 0;
+  const isCorrect = selectedAnswer === question.correctAnswer;
 
   const handleTimeout = useCallback(() => {
     if (!answeredRef.current) {
       answeredRef.current = true;
-      setAnswered(true);
       onAnswer(-1); // Timeout
     }
   }, [onAnswer]);
 
+  // Timer effect - only runs once on mount since we use key prop for remounting
   useEffect(() => {
-    answeredRef.current = false;
-    setAnswered(false);
-    setSelectedAnswer(null);
-    setTimeLeft(timeLimit);
+    startTimeRef.current = Date.now();
     
-    const startTime = Date.now();
     const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, timeLimit - elapsed);
-      setTimeLeft(remaining);
-      
-      if (remaining === 0 && !answeredRef.current) {
-        handleTimeout();
+      if (startTimeRef.current) {
+        const now = Date.now();
+        setElapsedMs(now - startTimeRef.current);
       }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [question.id, timeLimit, handleTimeout]);
+  });
+
+  // Handle timeout when time runs out
+  useEffect(() => {
+    if (timeLeft === 0 && !answeredRef.current) {
+      handleTimeout();
+    }
+  }, [timeLeft, handleTimeout]);
 
   const handleSelect = useCallback((index) => {
     if (answeredRef.current) return;
     answeredRef.current = true;
     setSelectedAnswer(index);
-    setAnswered(true);
     
     setTimeout(() => {
       onAnswer(index);
@@ -47,7 +54,6 @@ const TriviaModal = ({ question, onAnswer, timeLimit }) => {
   }, [onAnswer]);
 
   const timePercent = (timeLeft / timeLimit) * 100;
-  const isCorrect = selectedAnswer === question.correctAnswer;
 
   return (
     <div className="trivia-modal-overlay">

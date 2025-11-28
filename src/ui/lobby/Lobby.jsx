@@ -19,6 +19,7 @@ const Lobby = () => {
   // Initialize room (create or join)
   useEffect(() => {
     let unsubscribe = null;
+    let mounted = true;
     
     const initRoom = async () => {
       try {
@@ -31,6 +32,7 @@ const Lobby = () => {
         // If we're hosting (coming from 'hosting' screen)
         if (state.screen === 'hosting' && !roomCode) {
           const result = await createRoom(state.playerName, state.playerAvatar);
+          if (!mounted) return;
           roomCode = result.roomCode;
           playerId = result.playerId;
           actions.setRoom({ roomCode });
@@ -39,6 +41,7 @@ const Lobby = () => {
         // If we're joining (coming from 'joining' screen)
         else if (state.screen === 'joining' && roomCode && !playerId) {
           const result = await joinRoom(roomCode, state.playerName, state.playerAvatar);
+          if (!mounted) return;
           playerId = result.playerId;
           actions.setPlayerInfo({ playerId, isHost: false });
         }
@@ -46,6 +49,7 @@ const Lobby = () => {
         // Subscribe to room updates
         if (roomCode) {
           unsubscribe = subscribeToRoom(roomCode, (roomData) => {
+            if (!mounted) return;
             if (!roomData) {
               // Room was deleted
               setError('Room no longer exists');
@@ -72,20 +76,26 @@ const Lobby = () => {
           });
         }
         
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       } catch (err) {
-        setError(err.message || 'Failed to connect');
-        setIsLoading(false);
+        if (mounted) {
+          setError(err.message || 'Failed to connect');
+          setIsLoading(false);
+        }
       }
     };
     
     initRoom();
     
     return () => {
+      mounted = false;
       if (unsubscribe) {
         unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle leave
@@ -106,8 +116,8 @@ const Lobby = () => {
     if (!state.isHost) return;
     try {
       await updateRoomSettings(state.roomCode, { [setting]: value });
-    } catch (err) {
-      console.error('Error updating settings:', err);
+    } catch (error) {
+      console.error('Error updating settings:', error);
     }
   }, [state.roomCode, state.isHost]);
 
@@ -116,7 +126,7 @@ const Lobby = () => {
     if (!state.isHost) return;
     try {
       await startRace(state.roomCode);
-    } catch (err) {
+    } catch {
       setError('Failed to start race');
     }
   }, [state.roomCode, state.isHost]);

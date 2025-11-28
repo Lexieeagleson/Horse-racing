@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useGame } from '../../state/GameContext';
 import { 
   subscribeToRoom, 
@@ -19,11 +19,12 @@ import './raceScreen.css';
 
 const RaceScreen = () => {
   const { state, actions } = useGame();
-  const [localPlayers, setLocalPlayers] = useState({});
   const [showTrivia, setShowTrivia] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [stamina, setStamina] = useState({ current: 100, max: 100, percentage: 100, isOverheated: false });
   const [events, setEvents] = useState({});
+  const [tapCount, setTapCount] = useState(0);
+  const [networkPlayers, setNetworkPlayers] = useState(null);
   
   const raceEngineRef = useRef(null);
   const triviaModeRef = useRef(null);
@@ -31,6 +32,11 @@ const RaceScreen = () => {
   const randomModeRef = useRef(null);
   const unsubscribeRef = useRef(null);
   const lastSyncRef = useRef(0);
+  
+  // Use network players if available, otherwise fall back to state players
+  const localPlayers = useMemo(() => {
+    return networkPlayers || state.players || {};
+  }, [networkPlayers, state.players]);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -120,7 +126,7 @@ const RaceScreen = () => {
     raceEngineRef.current = new RaceEngine(
       // On update
       async (updatedPlayers) => {
-        setLocalPlayers(updatedPlayers);
+        setNetworkPlayers(updatedPlayers);
         
         // Sync to network periodically
         const now = Date.now();
@@ -164,9 +170,6 @@ const RaceScreen = () => {
 
   // Initialize race
   useEffect(() => {
-    const players = state.players || {};
-    setLocalPlayers(players);
-
     // Subscribe to room updates
     unsubscribeRef.current = subscribeToRoom(state.roomCode, (roomData) => {
       if (!roomData) {
@@ -176,7 +179,7 @@ const RaceScreen = () => {
       
       // Update players from network
       if (roomData.players) {
-        setLocalPlayers(roomData.players);
+        setNetworkPlayers(roomData.players);
       }
       
       // Check for race end
@@ -199,6 +202,7 @@ const RaceScreen = () => {
     });
 
     // Initialize race engine for host
+    const players = state.players || {};
     if (state.isHost) {
       initializeHostRace(players);
     }
@@ -220,13 +224,16 @@ const RaceScreen = () => {
   // Initialize button mash mode for player
   useEffect(() => {
     if (state.settings.gameMode === 'buttonMash') {
+      const roomCode = state.roomCode;
+      const playerId = state.playerId;
+      
       buttonMashRef.current = new ButtonMashMode(
-        state.playerId,
+        playerId,
         async (speed) => {
           // Update local and sync
           try {
-            await updatePlayerProgress(state.roomCode, state.playerId, 
-              localPlayers[state.playerId]?.progress || 0, speed);
+            await updatePlayerProgress(roomCode, playerId, 
+              localPlayers[playerId]?.progress || 0, speed);
           } catch {
             // Ignore sync errors
           }
@@ -244,12 +251,13 @@ const RaceScreen = () => {
         buttonMashRef.current = null;
       }
     };
-  }, [state.settings.gameMode]);
+  }, [state.settings.gameMode, state.roomCode, state.playerId, localPlayers]);
 
   // Handle tap
   const handleTap = useCallback(() => {
     if (buttonMashRef.current) {
       buttonMashRef.current.tap();
+      setTapCount(prev => prev + 1);
     }
   }, []);
 
@@ -258,12 +266,12 @@ const RaceScreen = () => {
     cleanup();
     try {
       await leaveRoom(state.roomCode, state.playerId, state.isHost);
-    } catch (err) {
-      // Ignore
+    } catch {
+      // Ignore errors when leaving
     }
     actions.reset();
     actions.setScreen('menu');
-  }, [state.roomCode, state.playerId, state.isHost, actions]);
+  }, [state.roomCode, state.playerId, state.isHost, actions, cleanup]);
 
   // Render view based on settings
   const renderRaceView = () => {
@@ -311,7 +319,7 @@ const RaceScreen = () => {
         <ButtonMashUI 
           onTap={handleTap} 
           stamina={stamina}
-          tapCount={buttonMashRef.current?.getTapCount() || 0}
+          tapCount={tapCount}
         />
       )}
 
@@ -334,6 +342,7 @@ const RaceScreen = () => {
       {/* Trivia Modal */}
       {showTrivia && currentQuestion && (
         <TriviaModal
+          key={currentQuestion.id}
           question={currentQuestion}
           onAnswer={handleTriviaAnswer}
           timeLimit={TRIVIA_CONFIG.answerTimeout}
