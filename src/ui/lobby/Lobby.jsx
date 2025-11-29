@@ -122,15 +122,19 @@ const Lobby = () => {
           timeoutId = null;
         }
         if (mounted) {
-          // Provide more helpful error messages
+          // Provide more helpful error messages based on error codes
           let errorMessage = err.message || 'Failed to connect';
-          if (err.code === 'PERMISSION_DENIED' || errorMessage.includes('permission')) {
+          
+          // Use error codes as primary classification (Firebase uses these)
+          if (err.code === 'PERMISSION_DENIED') {
             errorMessage = 'Permission denied. Please check your Firebase database rules.';
-          } else if (err.code === 'NETWORK_ERROR' || errorMessage.includes('network')) {
+          } else if (err.code === 'NETWORK_ERROR' || err.code === 'UNAVAILABLE') {
             errorMessage = 'Network error. Please check your internet connection.';
-          } else if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
+          } else if (err.message === 'Room not found') {
+            // This is our own error from network.js joinRoom function
             errorMessage = 'Room not found. Please check the room code.';
           }
+          
           setError(errorMessage);
           setIsLoading(false);
         }
