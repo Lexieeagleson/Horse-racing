@@ -18,6 +18,15 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
 };
 
+// Check if Firebase is properly configured (not using demo values)
+export const isFirebaseConfigured = () => {
+  const hasApiKey = import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== "demo-api-key";
+  const hasDatabaseUrl = import.meta.env.VITE_FIREBASE_DATABASE_URL && import.meta.env.VITE_FIREBASE_DATABASE_URL !== "https://demo-project-default-rtdb.firebaseio.com";
+  const hasProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID && import.meta.env.VITE_FIREBASE_PROJECT_ID !== "demo-project";
+  
+  return hasApiKey && hasDatabaseUrl && hasProjectId;
+};
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);

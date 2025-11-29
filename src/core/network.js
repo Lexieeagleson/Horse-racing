@@ -1,4 +1,4 @@
-import { database, ref, set, onValue, update, remove, get, onDisconnect, serverTimestamp } from './firebase';
+import { database, ref, set, onValue, update, remove, get, onDisconnect, serverTimestamp, isFirebaseConfigured } from './firebase';
 
 // Generate a 4-digit room code
 const generateRoomCode = () => {
@@ -214,4 +214,4 @@ export const sendTapInput = async (roomCode, playerId, tapCount) => {
   });
 };
 
-export { generatePlayerId, generateRoomCode };
+export { generatePlayerId, generateRoomCode, isFirebaseConfigured };
