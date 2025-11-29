@@ -6,7 +6,8 @@ import {
   leaveRoom, 
   updateRoomSettings, 
   startRace,
-  subscribeToRoom 
+  subscribeToRoom,
+  isFirebaseConfigured
 } from '../../core/network';
 import './lobby.css';
 
@@ -37,10 +38,19 @@ const Lobby = () => {
         setIsLoading(true);
         setError('');
         
+        // Check if Firebase is properly configured
+        if (!isFirebaseConfigured()) {
+          if (mounted) {
+            setError('Firebase is not configured. Please set up your Firebase project and add the configuration to a .env file. See README.md for instructions.');
+            setIsLoading(false);
+          }
+          return;
+        }
+        
         // Set a timeout to prevent indefinite loading
         timeoutId = setTimeout(() => {
           if (mounted && !connectionComplete) {
-            setError('Connection timed out');
+            setError('Connection timed out.');
             setIsLoading(false);
           }
         }, CONNECTION_TIMEOUT_MS);
@@ -112,7 +122,20 @@ const Lobby = () => {
           timeoutId = null;
         }
         if (mounted) {
-          setError(err.message || 'Failed to connect');
+          // Provide more helpful error messages based on error codes
+          let errorMessage = err.message || 'Failed to connect';
+          
+          // Use error codes as primary classification (Firebase uses these)
+          if (err.code === 'PERMISSION_DENIED') {
+            errorMessage = 'Permission denied. Please check your Firebase database rules.';
+          } else if (err.code === 'NETWORK_ERROR' || err.code === 'UNAVAILABLE') {
+            errorMessage = 'Network error. Please check your internet connection.';
+          } else if (err.message === 'Room not found') {
+            // This is our own error from network.js joinRoom function
+            errorMessage = 'Room not found. Please check the room code.';
+          }
+          
+          setError(errorMessage);
           setIsLoading(false);
         }
       }
