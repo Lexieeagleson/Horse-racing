@@ -181,7 +181,9 @@ export class TriviaMode {
       // Use questions from API
       const availableApiQuestions = this.apiQuestions.filter(q => !this.usedQuestionIds.includes(q.id));
       if (availableApiQuestions.length > 0) {
-        this.currentQuestion = availableApiQuestions[0];
+        // Randomly select from available API questions
+        const randomIndex = Math.floor(Math.random() * availableApiQuestions.length);
+        this.currentQuestion = availableApiQuestions[randomIndex];
       } else {
         // All API questions used, try fallback
         this.currentQuestion = getRandomQuestion(this.usedQuestionIds);

@@ -25,8 +25,11 @@ const transformQuestionWithCorrectIndex = (apiQuestion, index) => {
   // Find the new index of the correct answer
   const correctIndex = allOptions.indexOf(correctAnswer);
   
+  // Generate a unique ID using timestamp, index, and random component
+  const uniqueId = `api-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`;
+  
   return {
-    id: `api-${Date.now()}-${index}`,
+    id: uniqueId,
     question: decodeHtmlEntities(apiQuestion.question),
     options: allOptions,
     correctAnswer: correctIndex,
