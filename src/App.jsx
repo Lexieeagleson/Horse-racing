@@ -1,6 +1,7 @@
 import { GameProvider, useGame } from './state/GameContext';
 import MainMenu from './ui/menu/MainMenu';
 import Lobby from './ui/lobby/Lobby';
+import LocalLobby from './ui/lobby/LocalLobby';
 import RaceScreen from './ui/race/RaceScreen';
 import Results from './ui/results/Results';
 import './App.css';
@@ -16,6 +17,8 @@ const GameRouter = () => {
     case 'joining':
     case 'lobby':
       return <Lobby />;
+    case 'localLobby':
+      return <LocalLobby />;
     case 'race':
       return <RaceScreen />;
     case 'results':

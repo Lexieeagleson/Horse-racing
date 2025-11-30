@@ -3,6 +3,12 @@ import { useGame } from '../../state/GameContext';
 import AvatarSelector from '../../components/AvatarSelector';
 import './mainMenu.css';
 
+// AI player names for local mode
+const AI_NAMES = [
+  'Thunder', 'Lightning', 'Storm', 'Blaze', 'Shadow',
+  'Spirit', 'Flash', 'Rocket', 'Comet', 'Star'
+];
+
 const MainMenu = () => {
   const { state, actions } = useGame();
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
@@ -49,6 +55,21 @@ const MainMenu = () => {
     actions.setScreen('joining');
   }, [playerName, state.playerAvatar, joinCode, actions]);
 
+  const handlePlayLocal = useCallback(() => {
+    if (!playerName.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+    if (!state.playerAvatar) {
+      setError('Please select an avatar');
+      return;
+    }
+    setError('');
+    actions.setPlayerInfo({ playerName: playerName.trim() });
+    actions.setLocalMode(true);
+    actions.setScreen('localLobby');
+  }, [playerName, state.playerAvatar, actions]);
+
   return (
     <div className="main-menu">
       <div className="menu-content">
@@ -88,6 +109,12 @@ const MainMenu = () => {
 
         {/* Error Message */}
         {error && <div className="error-message">{error}</div>}
+
+        {/* Play Local Button */}
+        <button className="menu-btn local-btn" onClick={handlePlayLocal}>
+          <span className="btn-icon">🏠</span>
+          Play Local
+        </button>
 
         {/* Host Game Button */}
         <button className="menu-btn host-btn" onClick={handleHostGame}>

@@ -11,24 +11,32 @@ const Results = () => {
 
   // Handle play again
   const handlePlayAgain = useCallback(async () => {
-    try {
-      await returnToLobby(state.roomCode);
-      actions.setScreen('lobby');
-    } catch (error) {
-      console.error('Error returning to lobby:', error);
+    if (state.isLocalMode) {
+      // For local mode, go back to local lobby
+      actions.setScreen('localLobby');
+    } else {
+      try {
+        await returnToLobby(state.roomCode);
+        actions.setScreen('lobby');
+      } catch (error) {
+        console.error('Error returning to lobby:', error);
+      }
     }
-  }, [state.roomCode, actions]);
+  }, [state.roomCode, state.isLocalMode, actions]);
 
   // Handle leave
   const handleLeave = useCallback(async () => {
-    try {
-      await leaveRoom(state.roomCode, state.playerId, state.isHost);
-    } catch {
-      // Ignore
+    if (!state.isLocalMode) {
+      try {
+        await leaveRoom(state.roomCode, state.playerId, state.isHost);
+      } catch {
+        // Ignore
+      }
     }
     actions.reset();
+    actions.setLocalMode(false);
     actions.setScreen('menu');
-  }, [state.roomCode, state.playerId, state.isHost, actions]);
+  }, [state.roomCode, state.playerId, state.isHost, state.isLocalMode, actions]);
 
   // Get medal for position
   const getMedal = (rank) => {
@@ -90,7 +98,7 @@ const Results = () => {
 
       {/* Action buttons */}
       <div className="results-actions">
-        {state.isHost ? (
+        {(state.isHost || state.isLocalMode) ? (
           <button className="action-btn primary" onClick={handlePlayAgain}>
             🔄 Play Again
           </button>
