@@ -7,7 +7,6 @@ export const BUTTON_MASH_CONFIG = {
   maxTapSpeed: 3.0, // Maximum speed with rapid tapping
   tapDecay: 0.95, // How quickly tap momentum decays each tick
   tapBoost: 0.15, // Speed boost per tap
-  staminaEnabled: true, // Whether stamina/overheat is enabled
   maxStamina: 100,
   staminaDrainPerTap: 2, // Stamina cost per tap
   staminaRecoveryRate: 1, // Stamina recovery per tick (when not tapping)
@@ -16,6 +15,10 @@ export const BUTTON_MASH_CONFIG = {
   syncInterval: 200 // ms between sending tap data to server
 };
 
+// Stamina is only enabled for long races (10 furlongs)
+// 6 furlong sprint races have no stamina restriction - just tap as fast as you can
+export const isStaminaEnabled = (trackLength) => trackLength !== 6;
+
 // Button Mash Mode Controller
 export class ButtonMashMode {
   constructor(playerId, onSpeedUpdate, onStaminaUpdate, trackLength = 6) {
@@ -23,6 +26,7 @@ export class ButtonMashMode {
     this.onSpeedUpdate = onSpeedUpdate;
     this.onStaminaUpdate = onStaminaUpdate;
     this.trackLength = trackLength;
+    this.staminaEnabled = isStaminaEnabled(trackLength);
     this.tapTarget = TRACK_LENGTH_CONFIG[trackLength]?.tapTarget || 300;
     this.tapMomentum = 0;
     this.stamina = BUTTON_MASH_CONFIG.maxStamina;
@@ -66,8 +70,8 @@ export class ButtonMashMode {
 
     const now = Date.now();
     
-    // Check stamina
-    if (BUTTON_MASH_CONFIG.staminaEnabled) {
+    // Check stamina (only for longer races, not 6f sprints)
+    if (this.staminaEnabled) {
       if (this.stamina <= BUTTON_MASH_CONFIG.overheatThreshold) {
         this.overheat();
         return;
@@ -98,8 +102,8 @@ export class ButtonMashMode {
       this.tapMomentum = 0;
     }
 
-    // Recover stamina when not tapping
-    if (BUTTON_MASH_CONFIG.staminaEnabled && !this.isOverheated) {
+    // Recover stamina when not tapping (only for longer races, not 6f sprints)
+    if (this.staminaEnabled && !this.isOverheated) {
       const timeSinceLastTap = Date.now() - this.lastTapTime;
       if (timeSinceLastTap > 200) { // Start recovery after 200ms of no tapping
         this.stamina = Math.min(
@@ -151,7 +155,8 @@ export class ButtonMashMode {
       current: this.stamina,
       max: BUTTON_MASH_CONFIG.maxStamina,
       percentage: (this.stamina / BUTTON_MASH_CONFIG.maxStamina) * 100,
-      isOverheated: this.isOverheated
+      isOverheated: this.isOverheated,
+      enabled: this.staminaEnabled
     };
   }
 
