@@ -145,10 +145,11 @@ export class RaceEngine {
       const speed = calculateSpeed(player.speed, modifiers);
       const newProgress = updateProgress(player.progress, speed, deltaTime);
       
-      this.players[playerId].progress = newProgress;
+      // Create a new player object reference so React memo detects the change
+      this.players[playerId] = { ...player, progress: newProgress };
     });
 
-    // Notify update
+    // Notify update - spread creates new object with new player references
     if (this.onUpdate) {
       this.onUpdate({ ...this.players });
     }

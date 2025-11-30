@@ -30,24 +30,29 @@ const ButtonMashUI = ({ onTap, stamina, tapCount, tapTarget = 300 }) => {
   // Calculate progress percentage
   const progressPercent = Math.min(100, (tapCount / tapTarget) * 100);
 
+  // Check if stamina system is enabled (disabled for 6f sprints)
+  const staminaEnabled = stamina.enabled !== false;
+
   return (
     <div className="button-mash-ui">
-      {/* Stamina bar */}
-      <div className="stamina-section">
-        <div className="stamina-label">
-          <span>Stamina</span>
-          {stamina.isOverheated && <span className="overheat-warning">OVERHEATED!</span>}
+      {/* Stamina bar - only shown when stamina is enabled */}
+      {staminaEnabled && (
+        <div className="stamina-section">
+          <div className="stamina-label">
+            <span>Stamina</span>
+            {stamina.isOverheated && <span className="overheat-warning">OVERHEATED!</span>}
+          </div>
+          <div className="stamina-bar-container">
+            <div 
+              className="stamina-bar-fill"
+              style={{ 
+                width: `${stamina.percentage}%`,
+                backgroundColor: getStaminaColor()
+              }}
+            />
+          </div>
         </div>
-        <div className="stamina-bar-container">
-          <div 
-            className="stamina-bar-fill"
-            style={{ 
-              width: `${stamina.percentage}%`,
-              backgroundColor: getStaminaColor()
-            }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Tap counter */}
       <div className="tap-counter">
@@ -68,7 +73,7 @@ const ButtonMashUI = ({ onTap, stamina, tapCount, tapTarget = 300 }) => {
 
       {/* Big tap button */}
       <div 
-        className={`tap-button ${isPressed ? 'pressed' : ''} ${stamina.isOverheated ? 'disabled' : ''}`}
+        className={`tap-button ${isPressed ? 'pressed' : ''} ${staminaEnabled && stamina.isOverheated ? 'disabled' : ''}`}
         onTouchStart={handleTapStart}
         onTouchEnd={handleTapEnd}
         onMouseDown={handleTapStart}
@@ -78,7 +83,7 @@ const ButtonMashUI = ({ onTap, stamina, tapCount, tapTarget = 300 }) => {
         {showRipple && <div className="tap-ripple" />}
         <span className="tap-icon">👆</span>
         <span className="tap-text">
-          {stamina.isOverheated ? 'COOLING...' : 'TAP!'}
+          {staminaEnabled && stamina.isOverheated ? 'COOLING...' : 'TAP!'}
         </span>
       </div>
 

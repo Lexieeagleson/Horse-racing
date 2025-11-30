@@ -9,7 +9,7 @@ import {
 } from '../../core/network';
 import { RaceEngine, RACE_CONFIG, TRACK_LENGTH_CONFIG } from '../../core/raceEngine';
 import { TriviaMode, TRIVIA_CONFIG } from '../../modes/triviaMode';
-import { ButtonMashMode } from '../../modes/buttonMashMode';
+import { ButtonMashMode, isStaminaEnabled } from '../../modes/buttonMashMode';
 import { RandomMode, EVENT_TYPES } from '../../modes/randomMode';
 import LaneView from '../../views/laneView';
 import BirdsEyeView from '../../views/birdsEyeView';
@@ -21,7 +21,15 @@ const RaceScreen = () => {
   const { state, actions } = useGame();
   const [showTrivia, setShowTrivia] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(null);
-  const [stamina, setStamina] = useState({ current: 100, max: 100, percentage: 100, isOverheated: false });
+  // Initialize stamina with enabled flag based on track length (6f sprints have no stamina)
+  const trackLength = state.settings.trackLength || 6;
+  const [stamina, setStamina] = useState({ 
+    current: 100, 
+    max: 100, 
+    percentage: 100, 
+    isOverheated: false,
+    enabled: isStaminaEnabled(trackLength)
+  });
   const [events, setEvents] = useState({});
   const [tapCount, setTapCount] = useState(0);
   const [networkPlayers, setNetworkPlayers] = useState(null);
