@@ -47,9 +47,10 @@
 
 .tap-counter {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 15px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 .tap-count {
@@ -60,9 +61,36 @@
 }
 
 .tap-label {
+  font-size: 0.85em;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.tap-progress-section {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.tap-progress-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.tap-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ECDC4 0%, #44B7A8 100%);
+  border-radius: 4px;
+  transition: width 0.15s ease-out;
+}
+
+.tap-progress-label {
   font-size: 0.75em;
   color: #888;
-  letter-spacing: 2px;
 }
 
 .tap-button {

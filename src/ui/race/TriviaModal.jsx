@@ -69,6 +69,13 @@ const TriviaModal = ({ question, onAnswer, timeLimit }) => {
           />
         </div>
         
+        {/* Question counter */}
+        {question.questionNumber && question.totalQuestions && (
+          <span className="trivia-counter">
+            Question {question.questionNumber} of {question.totalQuestions}
+          </span>
+        )}
+        
         {/* Category */}
         {question.category && (
           <span className="trivia-category">{question.category}</span>

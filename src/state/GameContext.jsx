@@ -16,6 +16,7 @@ const initialState = {
   settings: {
     viewMode: 'lane', // 'lane' or 'birdsEye'
     gameMode: 'random', // 'trivia', 'buttonMash', 'random'
+    trackLength: 6, // 6 (short) or 10 (long) furlongs
     maxPlayers: 14
   },
   

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import './buttonMashUI.css';
 
-const ButtonMashUI = ({ onTap, stamina, tapCount }) => {
+const ButtonMashUI = ({ onTap, stamina, tapCount, tapTarget = 300 }) => {
   const [isPressed, setIsPressed] = useState(false);
   const [showRipple, setShowRipple] = useState(false);
 
@@ -27,6 +27,9 @@ const ButtonMashUI = ({ onTap, stamina, tapCount }) => {
     return '#FF6B6B';
   };
 
+  // Calculate progress percentage
+  const progressPercent = Math.min(100, (tapCount / tapTarget) * 100);
+
   return (
     <div className="button-mash-ui">
       {/* Stamina bar */}
@@ -49,7 +52,18 @@ const ButtonMashUI = ({ onTap, stamina, tapCount }) => {
       {/* Tap counter */}
       <div className="tap-counter">
         <span className="tap-count">{tapCount}</span>
-        <span className="tap-label">TAPS</span>
+        <span className="tap-label">/ {tapTarget} TAPS</span>
+      </div>
+
+      {/* Progress bar towards tap target */}
+      <div className="tap-progress-section">
+        <div className="tap-progress-bar-container">
+          <div 
+            className="tap-progress-bar-fill"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <span className="tap-progress-label">{Math.round(progressPercent)}% to finish</span>
       </div>
 
       {/* Big tap button */}

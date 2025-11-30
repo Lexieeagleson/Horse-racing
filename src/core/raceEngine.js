@@ -11,6 +11,18 @@ export const RACE_CONFIG = {
   finishLine: 100 // Progress percentage to win
 };
 
+// Track length configuration
+export const TRACK_LENGTH_CONFIG = {
+  6: { // Short race - 6 furlongs
+    triviaQuestions: 6,
+    tapTarget: 300
+  },
+  10: { // Long race - 10 furlongs
+    triviaQuestions: 10,
+    tapTarget: 500
+  }
+};
+
 // Calculate speed with modifiers
 export const calculateSpeed = (baseSpeed, modifiers = {}) => {
   let speed = baseSpeed;
