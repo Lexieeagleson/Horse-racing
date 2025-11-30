@@ -1,9 +1,10 @@
 // Trivia Mode - Questions appear for all players, correct answers give speed boosts
 
 import { TRACK_LENGTH_CONFIG } from '../core/raceEngine';
+import { fetchTriviaQuestions } from '../core/triviaApi';
 
-// Sample trivia questions (can be expanded)
-export const triviaQuestions = [
+// Fallback trivia questions used when API is unavailable
+export const fallbackQuestions = [
   {
     id: 1,
     question: "What is the capital of France?",
@@ -99,19 +100,18 @@ export const TRIVIA_CONFIG = {
   slowdownMultiplier: 0.3
 };
 
-// Get a random question that hasn't been asked recently
-export const getRandomQuestion = (usedQuestionIds = []) => {
-  const availableQuestions = triviaQuestions.filter(q => !usedQuestionIds.includes(q.id));
+// Get a random question that hasn't been asked recently (used for fallback questions)
+export const getRandomQuestion = (usedQuestionIds = [], questions = fallbackQuestions) => {
+  const availableQuestions = questions.filter(q => !usedQuestionIds.includes(q.id));
   if (availableQuestions.length === 0) {
     // Reset if all questions used
-    return triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
+    return questions[Math.floor(Math.random() * questions.length)];
   }
   return availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
 };
 
-// Check if answer is correct
-export const checkAnswer = (questionId, answerIndex) => {
-  const question = triviaQuestions.find(q => q.id === questionId);
+// Check if answer is correct (works with both API and fallback questions)
+export const checkAnswer = (question, answerIndex) => {
   if (!question) return false;
   return question.correctAnswer === answerIndex;
 };
@@ -130,12 +130,24 @@ export class TriviaMode {
     this.intervalId = null;
     this.isActive = false;
     this.playerAnswers = {};
+    this.apiQuestions = []; // Questions fetched from API
+    this.useApi = true; // Whether to use API or fallback
   }
 
-  start() {
+  async start() {
     this.isActive = true;
     this.usedQuestionIds = [];
     this.questionsAsked = 0;
+    
+    // Try to fetch questions from the API
+    try {
+      this.apiQuestions = await fetchTriviaQuestions(this.maxQuestions + 5); // Fetch extra for variety
+      this.useApi = true;
+    } catch (error) {
+      console.warn('Failed to fetch trivia questions from API, using fallback:', error);
+      this.useApi = false;
+    }
+    
     this.askQuestion();
     
     // Set up interval for new questions
@@ -164,7 +176,21 @@ export class TriviaMode {
       return;
     }
 
-    this.currentQuestion = getRandomQuestion(this.usedQuestionIds);
+    // Get question from API or fallback
+    if (this.useApi && this.apiQuestions.length > 0) {
+      // Use questions from API
+      const availableApiQuestions = this.apiQuestions.filter(q => !this.usedQuestionIds.includes(q.id));
+      if (availableApiQuestions.length > 0) {
+        this.currentQuestion = availableApiQuestions[0];
+      } else {
+        // All API questions used, try fallback
+        this.currentQuestion = getRandomQuestion(this.usedQuestionIds);
+      }
+    } else {
+      // Use fallback questions
+      this.currentQuestion = getRandomQuestion(this.usedQuestionIds);
+    }
+    
     this.usedQuestionIds.push(this.currentQuestion.id);
     this.questionsAsked++;
     this.playerAnswers = {};
@@ -190,7 +216,7 @@ export class TriviaMode {
       return null;
     }
 
-    const isCorrect = checkAnswer(this.currentQuestion.id, answerIndex);
+    const isCorrect = checkAnswer(this.currentQuestion, answerIndex);
     this.playerAnswers[playerId] = { answerIndex, isCorrect };
 
     const result = {
