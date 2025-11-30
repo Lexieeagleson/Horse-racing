@@ -165,6 +165,11 @@
   color: #1a1a2e;
 }
 
+.local-btn {
+  background: linear-gradient(135deg, #F8B500 0%, #E5A500 100%);
+  color: #1a1a2e;
+}
+
 .btn-icon {
   font-size: 1.2em;
 }

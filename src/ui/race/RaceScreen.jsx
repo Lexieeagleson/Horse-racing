@@ -69,11 +69,13 @@ const RaceScreen = () => {
       async (question) => {
         setCurrentQuestion(question);
         setShowTrivia(true);
-        // Broadcast to all players
-        try {
-          await setCurrentTrivia(state.roomCode, question);
-        } catch (error) {
-          console.error('Error broadcasting trivia:', error);
+        // Only broadcast to network in multiplayer mode
+        if (!state.isLocalMode) {
+          try {
+            await setCurrentTrivia(state.roomCode, question);
+          } catch (error) {
+            console.error('Error broadcasting trivia:', error);
+          }
         }
       },
       // On result
@@ -98,7 +100,7 @@ const RaceScreen = () => {
       }
     );
     triviaModeRef.current.start();
-  }, [state.roomCode]);
+  }, [state.roomCode, state.isLocalMode]);
 
   // Initialize random mode
   const initializeRandomMode = useCallback((playerIds) => {
@@ -120,35 +122,47 @@ const RaceScreen = () => {
     randomModeRef.current.start();
   }, []);
 
-  // Initialize host race
-  const initializeHostRace = useCallback((players) => {
+  // Initialize host race (works for both local and multiplayer)
+  const initializeHostRace = useCallback((players, isLocal) => {
     // Create race engine
     raceEngineRef.current = new RaceEngine(
       // On update
       async (updatedPlayers) => {
         setNetworkPlayers(updatedPlayers);
         
-        // Sync to network periodically
-        const now = Date.now();
-        if (now - lastSyncRef.current > 200) {
-          lastSyncRef.current = now;
-          // Update all players in the room
-          for (const playerId of Object.keys(updatedPlayers)) {
-            const player = updatedPlayers[playerId];
-            try {
-              await updatePlayerProgress(state.roomCode, playerId, player.progress, player.speed);
-            } catch (error) {
-              console.error('Sync error:', error);
+        // Only sync to network in multiplayer mode
+        if (!isLocal) {
+          const now = Date.now();
+          if (now - lastSyncRef.current > 200) {
+            lastSyncRef.current = now;
+            // Update all players in the room
+            for (const playerId of Object.keys(updatedPlayers)) {
+              const player = updatedPlayers[playerId];
+              try {
+                await updatePlayerProgress(state.roomCode, playerId, player.progress, player.speed);
+              } catch (error) {
+                console.error('Sync error:', error);
+              }
             }
           }
         }
       },
       // On finish
       async (winner, rankings) => {
-        try {
-          await endRace(state.roomCode, winner, rankings);
-        } catch (error) {
-          console.error('End race error:', error);
+        if (isLocal) {
+          // For local mode, update state directly
+          cleanup();
+          actions.updateRoom({
+            status: 'finished',
+            race: { winner, rankings }
+          });
+          actions.setScreen('results');
+        } else {
+          try {
+            await endRace(state.roomCode, winner, rankings);
+          } catch (error) {
+            console.error('End race error:', error);
+          }
         }
       }
     );
@@ -166,11 +180,23 @@ const RaceScreen = () => {
 
     // Start race
     raceEngineRef.current.start();
-  }, [state.roomCode, state.settings.gameMode, initializeTriviaMode, initializeRandomMode]);
+  }, [state.roomCode, state.settings.gameMode, initializeTriviaMode, initializeRandomMode, cleanup, actions]);
 
   // Initialize race
   useEffect(() => {
-    // Subscribe to room updates
+    const isLocal = state.isLocalMode;
+    const players = state.players || {};
+
+    // For local mode, skip network subscription
+    if (isLocal) {
+      // Initialize race engine directly for local mode
+      initializeHostRace(players, true);
+      return () => {
+        cleanup();
+      };
+    }
+
+    // For multiplayer mode, subscribe to room updates
     unsubscribeRef.current = subscribeToRoom(state.roomCode, (roomData) => {
       if (!roomData) {
         actions.setScreen('menu');
@@ -202,15 +228,14 @@ const RaceScreen = () => {
     });
 
     // Initialize race engine for host
-    const players = state.players || {};
     if (state.isHost) {
-      initializeHostRace(players);
+      initializeHostRace(players, false);
     }
 
     return () => {
       cleanup();
     };
-  }, [state.roomCode, state.players, state.isHost, actions, cleanup, initializeHostRace]);
+  }, [state.roomCode, state.players, state.isHost, state.isLocalMode, actions, cleanup, initializeHostRace]);
 
   // Handle trivia answer
   const handleTriviaAnswer = useCallback((answerIndex) => {
@@ -226,16 +251,22 @@ const RaceScreen = () => {
     if (state.settings.gameMode === 'buttonMash') {
       const roomCode = state.roomCode;
       const playerId = state.playerId;
+      const isLocal = state.isLocalMode;
       
       buttonMashRef.current = new ButtonMashMode(
         playerId,
         async (speed) => {
-          // Update local and sync
-          try {
-            await updatePlayerProgress(roomCode, playerId, 
-              localPlayers[playerId]?.progress || 0, speed);
-          } catch {
-            // Ignore sync errors
+          // For local mode, update race engine directly
+          if (isLocal && raceEngineRef.current) {
+            raceEngineRef.current.updatePlayerSpeed(playerId, speed);
+          } else if (!isLocal) {
+            // For multiplayer, sync to network
+            try {
+              await updatePlayerProgress(roomCode, playerId, 
+                localPlayers[playerId]?.progress || 0, speed);
+            } catch {
+              // Ignore sync errors
+            }
           }
         },
         (staminaData) => {
@@ -251,7 +282,7 @@ const RaceScreen = () => {
         buttonMashRef.current = null;
       }
     };
-  }, [state.settings.gameMode, state.roomCode, state.playerId, localPlayers]);
+  }, [state.settings.gameMode, state.roomCode, state.playerId, state.isLocalMode, localPlayers]);
 
   // Handle tap
   const handleTap = useCallback(() => {
@@ -264,14 +295,17 @@ const RaceScreen = () => {
   // Handle leave
   const handleLeave = useCallback(async () => {
     cleanup();
-    try {
-      await leaveRoom(state.roomCode, state.playerId, state.isHost);
-    } catch {
-      // Ignore errors when leaving
+    if (!state.isLocalMode) {
+      try {
+        await leaveRoom(state.roomCode, state.playerId, state.isHost);
+      } catch {
+        // Ignore errors when leaving
+      }
     }
     actions.reset();
+    actions.setLocalMode(false);
     actions.setScreen('menu');
-  }, [state.roomCode, state.playerId, state.isHost, actions, cleanup]);
+  }, [state.roomCode, state.playerId, state.isHost, state.isLocalMode, actions, cleanup]);
 
   // Render view based on settings
   const renderRaceView = () => {

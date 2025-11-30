@@ -31,8 +31,11 @@ const initialState = {
   // Connection status
   connected: true,
   
+  // Local mode flag
+  isLocalMode: false,
+  
   // UI state
-  screen: 'menu', // 'menu', 'lobby', 'race', 'results'
+  screen: 'menu', // 'menu', 'lobby', 'localLobby', 'race', 'results'
   error: null
 };
 
@@ -49,6 +52,7 @@ const ACTIONS = {
   SET_SCREEN: 'SET_SCREEN',
   SET_ERROR: 'SET_ERROR',
   SET_CONNECTED: 'SET_CONNECTED',
+  SET_LOCAL_MODE: 'SET_LOCAL_MODE',
   RESET: 'RESET'
 };
 
@@ -138,6 +142,12 @@ const gameReducer = (state, action) => {
         connected: action.payload
       };
     
+    case ACTIONS.SET_LOCAL_MODE:
+      return {
+        ...state,
+        isLocalMode: action.payload
+      };
+    
     case ACTIONS.RESET:
       return {
         ...initialState,
@@ -170,6 +180,7 @@ export const GameProvider = ({ children }) => {
     setScreen: (screen) => dispatch({ type: ACTIONS.SET_SCREEN, payload: screen }),
     setError: (error) => dispatch({ type: ACTIONS.SET_ERROR, payload: error }),
     setConnected: (connected) => dispatch({ type: ACTIONS.SET_CONNECTED, payload: connected }),
+    setLocalMode: (isLocal) => dispatch({ type: ACTIONS.SET_LOCAL_MODE, payload: isLocal }),
     reset: () => dispatch({ type: ACTIONS.RESET })
   }), []);
 
