@@ -5,7 +5,7 @@ export const RACE_CONFIG = {
   baseSpeed: 0.5, // Base progress per tick (percentage)
   boostMultiplier: 2.0,
   slowdownMultiplier: 0.3,
-  maxSpeed: 3.0,
+  maxSpeed: 5.0, // Increased to allow meaningful boosts in trivia mode
   minSpeed: 0.1,
   tickInterval: 100, // ms between updates
   finishLine: 100 // Progress percentage to win
@@ -15,11 +15,13 @@ export const RACE_CONFIG = {
 export const TRACK_LENGTH_CONFIG = {
   6: { // Short race - 6 furlongs
     triviaQuestions: 6,
-    tapTarget: 300
+    tapTarget: 300,
+    triviaBaseSpeed: 2.0 // Speed calibrated for 6 questions at 8s intervals (~48s race)
   },
   10: { // Long race - 10 furlongs
     triviaQuestions: 10,
-    tapTarget: 500
+    tapTarget: 500,
+    triviaBaseSpeed: 1.2 // Speed calibrated for 10 questions at 8s intervals (~80s race)
   }
 };
 
@@ -83,6 +85,12 @@ export class RaceEngine {
     this.onFinish = onFinish;
     this.modifiers = {}; // Player modifiers { playerId: { boost: true, multiplier: 1.5 } }
     this.intervalId = null;
+    this.baseSpeed = RACE_CONFIG.baseSpeed;
+  }
+
+  // Set custom base speed (e.g., for trivia mode)
+  setBaseSpeed(speed) {
+    this.baseSpeed = speed;
   }
 
   // Initialize players
@@ -90,7 +98,7 @@ export class RaceEngine {
     this.players = { ...players };
     Object.keys(this.players).forEach(id => {
       this.players[id].progress = 0;
-      this.players[id].speed = RACE_CONFIG.baseSpeed;
+      this.players[id].speed = this.baseSpeed;
     });
   }
 
