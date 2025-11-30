@@ -175,11 +175,18 @@ const RaceScreen = () => {
       }
     );
 
-    raceEngineRef.current.setPlayers(players);
-
     // Initialize game mode
     const gameMode = state.settings.gameMode;
     
+    // Set trivia-specific base speed if in trivia mode
+    if (gameMode === 'trivia') {
+      const trackLength = state.settings.trackLength || 6;
+      const triviaBaseSpeed = TRACK_LENGTH_CONFIG[trackLength]?.triviaBaseSpeed || 2.0;
+      raceEngineRef.current.setBaseSpeed(triviaBaseSpeed);
+    }
+
+    raceEngineRef.current.setPlayers(players);
+
     if (gameMode === 'trivia') {
       initializeTriviaMode();
     } else if (gameMode === 'random') {
@@ -188,7 +195,7 @@ const RaceScreen = () => {
 
     // Start race
     raceEngineRef.current.start();
-  }, [state.roomCode, state.settings.gameMode, initializeTriviaMode, initializeRandomMode, cleanup, actions]);
+  }, [state.roomCode, state.settings.gameMode, state.settings.trackLength, initializeTriviaMode, initializeRandomMode, cleanup, actions]);
 
   // Initialize race
   useEffect(() => {
