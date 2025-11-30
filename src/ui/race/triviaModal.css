@@ -58,6 +58,14 @@
   margin-bottom: 10px;
 }
 
+.trivia-counter {
+  display: block;
+  text-align: center;
+  color: #888;
+  font-size: 0.85em;
+  margin-bottom: 8px;
+}
+
 .trivia-question {
   color: #fff;
   font-size: 1.1em;

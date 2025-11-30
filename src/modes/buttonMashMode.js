@@ -1,5 +1,7 @@
 // Button Mash Mode - Tap frequency increases speed
 
+import { TRACK_LENGTH_CONFIG } from '../core/raceEngine';
+
 export const BUTTON_MASH_CONFIG = {
   baseTapSpeed: 0.5, // Base speed with no taps
   maxTapSpeed: 3.0, // Maximum speed with rapid tapping
@@ -16,10 +18,12 @@ export const BUTTON_MASH_CONFIG = {
 
 // Button Mash Mode Controller
 export class ButtonMashMode {
-  constructor(playerId, onSpeedUpdate, onStaminaUpdate) {
+  constructor(playerId, onSpeedUpdate, onStaminaUpdate, trackLength = 6) {
     this.playerId = playerId;
     this.onSpeedUpdate = onSpeedUpdate;
     this.onStaminaUpdate = onStaminaUpdate;
+    this.trackLength = trackLength;
+    this.tapTarget = TRACK_LENGTH_CONFIG[trackLength]?.tapTarget || 300;
     this.tapMomentum = 0;
     this.stamina = BUTTON_MASH_CONFIG.maxStamina;
     this.isOverheated = false;
@@ -137,6 +141,11 @@ export class ButtonMashMode {
     return BUTTON_MASH_CONFIG.baseTapSpeed + this.tapMomentum;
   }
 
+  // Get progress as percentage based on taps towards target
+  getProgress() {
+    return Math.min(100, (this.tapCount / this.tapTarget) * 100);
+  }
+
   getStamina() {
     return {
       current: this.stamina,
@@ -148,7 +157,7 @@ export class ButtonMashMode {
 
   notifySpeed() {
     if (this.onSpeedUpdate) {
-      this.onSpeedUpdate(this.getCurrentSpeed());
+      this.onSpeedUpdate(this.getCurrentSpeed(), this.getProgress());
     }
   }
 
@@ -160,6 +169,10 @@ export class ButtonMashMode {
 
   getTapCount() {
     return this.tapCount;
+  }
+
+  getTapTarget() {
+    return this.tapTarget;
   }
 }
 

@@ -7,7 +7,7 @@ import {
   setCurrentTrivia,
   leaveRoom
 } from '../../core/network';
-import { RaceEngine, RACE_CONFIG } from '../../core/raceEngine';
+import { RaceEngine, RACE_CONFIG, TRACK_LENGTH_CONFIG } from '../../core/raceEngine';
 import { TriviaMode, TRIVIA_CONFIG } from '../../modes/triviaMode';
 import { ButtonMashMode } from '../../modes/buttonMashMode';
 import { RandomMode, EVENT_TYPES } from '../../modes/randomMode';
@@ -32,6 +32,12 @@ const RaceScreen = () => {
   const randomModeRef = useRef(null);
   const unsubscribeRef = useRef(null);
   const lastSyncRef = useRef(0);
+  
+  // Compute tap target based on track length
+  const tapTarget = useMemo(() => {
+    const trackLength = state.settings.trackLength || 6;
+    return TRACK_LENGTH_CONFIG[trackLength]?.tapTarget || 300;
+  }, [state.settings.trackLength]);
   
   // Use network players if available, otherwise fall back to state players
   const localPlayers = useMemo(() => {
@@ -64,6 +70,7 @@ const RaceScreen = () => {
 
   // Initialize trivia mode
   const initializeTriviaMode = useCallback(() => {
+    const trackLength = state.settings.trackLength || 6;
     triviaModeRef.current = new TriviaMode(
       // On question
       async (question) => {
@@ -97,10 +104,11 @@ const RaceScreen = () => {
             }, TRIVIA_CONFIG.slowdownDuration);
           }
         }
-      }
+      },
+      trackLength
     );
     triviaModeRef.current.start();
-  }, [state.roomCode, state.isLocalMode]);
+  }, [state.roomCode, state.isLocalMode, state.settings.trackLength]);
 
   // Initialize random mode
   const initializeRandomMode = useCallback((playerIds) => {
@@ -252,18 +260,22 @@ const RaceScreen = () => {
       const roomCode = state.roomCode;
       const playerId = state.playerId;
       const isLocal = state.isLocalMode;
+      const trackLength = state.settings.trackLength || 6;
       
       buttonMashRef.current = new ButtonMashMode(
         playerId,
-        async (speed) => {
-          // For local mode, update race engine directly
+        async (speed, progress) => {
+          // For local mode, update race engine directly with progress based on taps
           if (isLocal && raceEngineRef.current) {
+            // Directly set progress based on tap count / tap target
+            if (raceEngineRef.current.players[playerId]) {
+              raceEngineRef.current.players[playerId].progress = progress;
+            }
             raceEngineRef.current.updatePlayerSpeed(playerId, speed);
           } else if (!isLocal) {
             // For multiplayer, sync to network
             try {
-              await updatePlayerProgress(roomCode, playerId, 
-                localPlayers[playerId]?.progress || 0, speed);
+              await updatePlayerProgress(roomCode, playerId, progress, speed);
             } catch {
               // Ignore sync errors
             }
@@ -271,7 +283,8 @@ const RaceScreen = () => {
         },
         (staminaData) => {
           setStamina(staminaData);
-        }
+        },
+        trackLength
       );
       buttonMashRef.current.start();
     }
@@ -282,7 +295,7 @@ const RaceScreen = () => {
         buttonMashRef.current = null;
       }
     };
-  }, [state.settings.gameMode, state.roomCode, state.playerId, state.isLocalMode, localPlayers]);
+  }, [state.settings.gameMode, state.settings.trackLength, state.roomCode, state.playerId, state.isLocalMode]);
 
   // Handle tap
   const handleTap = useCallback(() => {
@@ -354,6 +367,7 @@ const RaceScreen = () => {
           onTap={handleTap} 
           stamina={stamina}
           tapCount={tapCount}
+          tapTarget={tapTarget}
         />
       )}
 

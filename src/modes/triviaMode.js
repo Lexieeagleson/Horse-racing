@@ -1,5 +1,7 @@
 // Trivia Mode - Questions appear for all players, correct answers give speed boosts
 
+import { TRACK_LENGTH_CONFIG } from '../core/raceEngine';
+
 // Sample trivia questions (can be expanded)
 export const triviaQuestions = [
   {
@@ -116,10 +118,13 @@ export const checkAnswer = (questionId, answerIndex) => {
 
 // Trivia Mode Controller
 export class TriviaMode {
-  constructor(onQuestion, onResult) {
+  constructor(onQuestion, onResult, trackLength = 6) {
     this.onQuestion = onQuestion;
     this.onResult = onResult;
+    this.trackLength = trackLength;
+    this.maxQuestions = TRACK_LENGTH_CONFIG[trackLength]?.triviaQuestions || 6;
     this.usedQuestionIds = [];
+    this.questionsAsked = 0;
     this.currentQuestion = null;
     this.questionTimeout = null;
     this.intervalId = null;
@@ -130,11 +135,12 @@ export class TriviaMode {
   start() {
     this.isActive = true;
     this.usedQuestionIds = [];
+    this.questionsAsked = 0;
     this.askQuestion();
     
     // Set up interval for new questions
     this.intervalId = setInterval(() => {
-      if (this.isActive) {
+      if (this.isActive && this.questionsAsked < this.maxQuestions) {
         this.askQuestion();
       }
     }, TRIVIA_CONFIG.questionInterval);
@@ -153,15 +159,23 @@ export class TriviaMode {
   }
 
   askQuestion() {
+    // Check if we've reached the question limit
+    if (this.questionsAsked >= this.maxQuestions) {
+      return;
+    }
+
     this.currentQuestion = getRandomQuestion(this.usedQuestionIds);
     this.usedQuestionIds.push(this.currentQuestion.id);
+    this.questionsAsked++;
     this.playerAnswers = {};
     
     if (this.onQuestion) {
       this.onQuestion({
         ...this.currentQuestion,
         startTime: Date.now(),
-        timeout: TRIVIA_CONFIG.answerTimeout
+        timeout: TRIVIA_CONFIG.answerTimeout,
+        questionNumber: this.questionsAsked,
+        totalQuestions: this.maxQuestions
       });
     }
 
@@ -201,6 +215,14 @@ export class TriviaMode {
 
   getCurrentQuestion() {
     return this.currentQuestion;
+  }
+
+  getQuestionsAsked() {
+    return this.questionsAsked;
+  }
+
+  getMaxQuestions() {
+    return this.maxQuestions;
   }
 }
 

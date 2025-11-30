@@ -307,6 +307,24 @@ const Lobby = () => {
               </button>
             </div>
           </div>
+          
+          <div className="setting-row">
+            <label>Track Length</label>
+            <div className="toggle-buttons">
+              <button 
+                className={state.settings.trackLength === 6 ? 'active' : ''}
+                onClick={() => handleSettingChange('trackLength', 6)}
+              >
+                🏃 Short (6F)
+              </button>
+              <button 
+                className={state.settings.trackLength === 10 ? 'active' : ''}
+                onClick={() => handleSettingChange('trackLength', 10)}
+              >
+                🏇 Long (10F)
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -323,6 +341,11 @@ const Lobby = () => {
           <p>
             <strong>View:</strong> {
               state.settings.viewMode === 'lane' ? 'Lane View' : 'Birds-Eye View'
+            }
+          </p>
+          <p>
+            <strong>Track:</strong> {
+              state.settings.trackLength === 6 ? '🏃 Short (6 Furlongs)' : '🏇 Long (10 Furlongs)'
             }
           </p>
           <p className="waiting-text">Waiting for host to start...</p>
